@@ -80,6 +80,9 @@ void CNetworkPlayerManager::AssignHostToFirstPlayer()
 
     player->m_bIsHost = true;
 
+    logger::info("Host (mission authority) is now player %d '%s'%s", player->m_iPlayerId, player->m_Name,
+        host != nullptr ? " (host changed)" : "");
+
     Packets::System::PlayerAssignHost playerAssignHost{};
     playerAssignHost.playerid = player->m_iPlayerId;
     GetPacketFactory().SendToAll(playerAssignHost);

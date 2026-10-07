@@ -23,9 +23,16 @@ bool CNetwork::Init(unsigned short port)
     address.host = ENET_HOST_ANY;  // bind server ip
     address.port = port;           // bind server port
 
-    // TODO: `ConfigManager::GetConfigMaxPlayers`
+    // `maxplayers` from server-config.ini, clamped to what the client/server arrays support
+    uint16_t maxPlayers = CConfigManager::GetConfigMaxPlayers();
+    if (maxPlayers < 1 || maxPlayers > Config::MAX_SERVER_PLAYERS)
+    {
+        logger::warn("maxplayers=%u out of range, clamping to [1, %u]", maxPlayers, Config::MAX_SERVER_PLAYERS);
+        maxPlayers = maxPlayers < 1 ? 1 : Config::MAX_SERVER_PLAYERS;
+    }
+
     ENetHost* pENetHost =
-        enet_host_create(&address, Config::MAX_SERVER_PLAYERS, (int)ePacketChannel::COUNT, 0, 0);  // create enet host
+        enet_host_create(&address, maxPlayers, (int)ePacketChannel::COUNT, 0, 0);  // create enet host
 
     if (pENetHost == nullptr)
     {
@@ -34,6 +41,8 @@ bool CNetwork::Init(unsigned short port)
     }
 
     printf("[!] : Server started on port %d\n", port);
+    logger::info("Listening on 0.0.0.0:%u (UDP, all interfaces: LAN and Radmin VPN IPs work), maxplayers=%u",
+        port, maxPlayers);
 
     ENetEvent eNetEvent{};
     while (true)  // waiting for event
@@ -86,7 +95,7 @@ bool CNetwork::Init(unsigned short port)
 
 void CNetwork::HandlePeerConnected(ENetEvent& event)
 {
-    printf("[Game] : A new client connected from %i.%i.%i.%i:%u.\n", event.peer->address.host & 0xFF,
+    logger::info("Peer connected from %i.%i.%i.%i:%u", event.peer->address.host & 0xFF,
         (event.peer->address.host >> 8) & 0xFF, (event.peer->address.host >> 16) & 0xFF,
         (event.peer->address.host >> 24) & 0xFF, event.peer->address.port);
 
@@ -124,7 +133,7 @@ void CNetwork::HandlePlayerDisconnected(ENetEvent& event)
     playerDisconnected.payload.reason = Packets::System::PlayerDisconnected::DISCONNECTION_REASON_NOTHING;
     GetPacketFactory().SendToAll(playerDisconnected);
 
-    printf("[Game] : %i Disconnected.\n", pNetworkPlayer->m_iPlayerId);
+    logger::info("Player %d (%s) disconnected", pNetworkPlayer->m_iPlayerId, pNetworkPlayer->m_Name);
 
     CNetworkPlayerManager::AssignHostToFirstPlayer();
 }
@@ -155,6 +164,8 @@ void CNetwork::HandlePlayerConnected(ENetPeer* pENetPeer, Packets::System::Playe
 
     if (packedVersion != playerConnected.payload.version)
     {
+        logger::warn("Rejected '%s': version mismatch (client %s, server %s)", playerConnected.payload.name, buffer,
+            COOPANDREAS_VERSION);
         Packets::System::PlayerDisconnected playerDisconnected{};
         playerDisconnected.payload.playerid = -1;
         playerDisconnected.payload.reason = Packets::System::PlayerDisconnected::DISCONNECTION_REASON_VERSION_MISMATCH;
@@ -169,7 +180,7 @@ void CNetwork::HandlePlayerConnected(ENetPeer* pENetPeer, Packets::System::Playe
     strcpy_s(pNewNetworkPlayer->m_Name, playerConnected.payload.name);
     CNetworkPlayerManager::Add(pNewNetworkPlayer);
 
-    logger::info("freeId %d name %s version %s", freeId, playerConnected.payload.name, buffer);
+    logger::info("Player %d '%s' joined (version %s)", freeId, playerConnected.payload.name, buffer);
 
     // Send the NEW player TO OLD players
     playerConnected.payload.playerid = freeId;

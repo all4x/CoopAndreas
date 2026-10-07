@@ -12,7 +12,7 @@ public:
     inline static std::string ms_sConfigPath = "server-config.ini";
 
     inline static const std::unordered_map<std::string, uint16_t> ms_umDefaultConfig = {
-        {"port", Config::DEFAULT_PORT}, {"maxplayers", Config::MAX_SERVER_PLAYERS}};
+        {"port", Config::DEFAULT_PORT}, {"maxplayers", 2}};
 
     static void Init();
     static bool HasConfigExists();
