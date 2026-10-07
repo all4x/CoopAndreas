@@ -45,12 +45,48 @@ bool CNetwork::Init(unsigned short port)
         port, maxPlayers);
 
     ENetEvent eNetEvent{};
+    uint32_t nLastHeartbeat = 0;
+    uint32_t nServiceErrors = 0;
     while (true)  // waiting for event
     {
         CServerTime::Update();
         CRTTBroadcastManager::Update();
 
-        while (enet_host_service(pENetHost, &eNetEvent, 1) > 0)
+        // diagnostics: every 10s, prove the loop is alive and dump non-idle ENet peers
+        if (g_serverTime - nLastHeartbeat >= 10000)
+        {
+            nLastHeartbeat = g_serverTime;
+            size_t nActive = 0;
+            for (size_t i = 0; i < pENetHost->peerCount; i++)
+            {
+                ENetPeer* peer = &pENetHost->peers[i];
+                if (peer->state == ENET_PEER_STATE_DISCONNECTED)
+                    continue;
+                nActive++;
+                logger::info("[diag] peer #%u %i.%i.%i.%i:%u state=%d rtt=%u", (unsigned)i, peer->address.host & 0xFF,
+                    (peer->address.host >> 8) & 0xFF, (peer->address.host >> 16) & 0xFF,
+                    (peer->address.host >> 24) & 0xFF, peer->address.port, (int)peer->state, peer->roundTripTime);
+            }
+            logger::info("[diag] loop alive, players=%u, active enet peers=%u, service errors=%u",
+                (unsigned)CNetworkPlayerManager::m_pPlayers.size(), (unsigned)nActive, nServiceErrors);
+        }
+
+        int serviceResult = 0;
+        static int s_lastServiceResult = 0;
+        if (s_lastServiceResult < 0)
+        {
+            nServiceErrors++;
+            if (nServiceErrors <= 20 || nServiceErrors % 1000 == 0)
+            {
+#ifdef _WIN32
+                logger::warn("[diag] enet_host_service error (WSA %d), count=%u", WSAGetLastError(), nServiceErrors);
+#else
+                logger::warn("[diag] enet_host_service error, count=%u", nServiceErrors);
+#endif
+            }
+            s_lastServiceResult = 0;
+        }
+        while ((serviceResult = enet_host_service(pENetHost, &eNetEvent, 1)) > 0)
         {
             switch (eNetEvent.type)
             {
@@ -85,6 +121,7 @@ bool CNetwork::Init(unsigned short port)
                     break;
             }
         }
+        s_lastServiceResult = serviceResult;
     }
 
     enet_host_destroy(pENetHost);
