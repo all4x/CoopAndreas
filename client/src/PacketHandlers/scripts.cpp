@@ -16,9 +16,13 @@ PACKET_HANDLER(ePacketType::ON_MISSION_FLAG_SYNC, Packets::Scripts::OnMissionFla
 
 	if (CTheScripts::OnAMissionFlag)
 	{
+		// read the previous value BEFORE overwriting it, otherwise the
+		// "mission just ended" cleanup below can never run
+		bool bWasOnMission = static_cast<bool>(CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag]);
 		CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag] = pOnMissionFlagSync->bOnMission;
-		if (pOnMissionFlagSync->bOnMission == false && (bool)CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag])
+		if (pOnMissionFlagSync->bOnMission == false && bWasOnMission)
 		{
+			logger::info("[mission] mission ended on host: cleaning up checkpoint/blips/widescreen/controls");
 			// cleanup
 			CNetworkCheckpoint::Remove();
 			CNetworkEntityBlip::ClearEntityBlips();
