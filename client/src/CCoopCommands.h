@@ -16,6 +16,9 @@ public:
     // typed by the local player
     static eResult HandleLocal(const std::wstring& text);
 
+    // run a command as if typed in the chat (used by the coop menu)
+    static void Run(const std::wstring& text);
+
     // received from another player; returns true if it was a coop command
     static bool HandleRemote(const char* senderName, const wchar_t* text);
 };

@@ -5,6 +5,7 @@
 #include "backends/imgui_impl_dx9.h"
 #include "CPacketTimeline.h"
 #include "MissionRunner.h"
+#include "UI/CCoopMenu.h"
 
 ImFont* pFont;
 
@@ -96,6 +97,15 @@ void CImGui::Init()
             }
 
             ImGui::PushFont(pFont);
+
+            if (CImGui::ms_bCoopMenu && !CCoopMenu::Draw())
+            {
+                CImGui::ms_bCoopMenu = false;
+                CImGui::UpdateActive();
+            }
+
+            if (CImGui::ms_bDebugMenu)
+            {
             ImGui::Begin("Debug", nullptr,
                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -116,10 +126,12 @@ void CImGui::Init()
             if (bMissionRunner && MissionRunner::DrawUI())
             {
                 bMissionRunner = false;
-                CImGui::SetActive(false);
+                CImGui::ms_bDebugMenu = false;
+                CImGui::UpdateActive();
             }
 
             ImGui::End();
+            }
             ImGui::PopFont();
 
             ImGui::EndFrame();
@@ -136,8 +148,20 @@ void CImGui::Init()
         if (strncmp(ACTIVATE_DEBUG_CHEAT, CCheat::m_CheatString, ARRAY_SIZE(ACTIVATE_DEBUG_CHEAT) - 1) == 0)
         {
             CCheat::m_CheatString[0] = '\0';
-            CImGui::SetActive(!CImGui::ms_bActive);
+            CImGui::ms_bDebugMenu = !CImGui::ms_bDebugMenu;
+            CImGui::UpdateActive();
         }
+
+        // F7: coop menu (only when the game window has focus and the chat is closed)
+        static bool bF7WasDown = false;
+        bool bF7Down = (GetAsyncKeyState(VK_F7) & 0x8000) != 0;
+        if (bF7Down && !bF7WasDown && GetForegroundWindow() == RsGlobal.ps->window && !CChat::m_bInputActive &&
+            !FrontEndMenuManager.m_bMenuActive)
+        {
+            CImGui::ms_bCoopMenu = !CImGui::ms_bCoopMenu;
+            CImGui::UpdateActive();
+        }
+        bF7WasDown = bF7Down;
     };
 }
 

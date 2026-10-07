@@ -68,7 +68,7 @@ PACKET_HANDLER(ePacketType::PLAYER_HANDSHAKE, Packets::System::PlayerHandshake* 
     CNetwork::m_bAuthenticated = true;
     CPatch::RevertTemporaryPatches();
     logger::info("Authenticated, playerid %d", pPlayerHandshake->yourid);
-    CChat::AddMessage("{cecedb}[Coop] Abra o chat com F6 e digite /ajuda para ver os comandos coop.");
+    CChat::AddMessage("{cecedb}[Coop] Menu coop: F7. Comandos no chat (F6): /ajuda");
 }
 
 PACKET_HANDLER(ePacketType::RTT_BROADCAST, Packets::System::RTTBroadcast* pRTTBroadcast)

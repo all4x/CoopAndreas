@@ -107,7 +107,7 @@ void ApplyShared(eCmd cmd, const std::string& arg)
 
 void ShowHelp()
 {
-    CChat::AddMessage("{cecedb}[Coop] Comandos (abra o chat com F6):");
+    CChat::AddMessage("{cecedb}[Coop] Comandos (chat: F6, menu com botoes: F7):");
     CChat::AddMessage("{cecedb} /tp - ir ate o outro  |  /trazer - puxar o outro ate voce");
     CChat::AddMessage("{cecedb} /vida - vida+colete+dinheiro (os dois)  |  /policia - zera estrelas (os dois)");
     CChat::AddMessage("{cecedb} /armas [1|2|3] - pacote de armas (os dois)  |  /sempolicia - liga/desliga (os dois)");
@@ -216,4 +216,14 @@ bool CCoopCommands::HandleRemote(const char* senderName, const wchar_t* text)
     }
     // other commands are local to the sender: just don't show them as chat
     return true;
+}
+
+void CCoopCommands::Run(const std::wstring& text)
+{
+    if (HandleLocal(text) == eResult::BROADCAST)
+    {
+        Packets::System::ChatMessage packet{};
+        wcscpy_s(packet.message, text.c_str());
+        GetPacketFactory().Send(packet);
+    }
 }
