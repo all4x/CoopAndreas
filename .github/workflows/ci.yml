@@ -14,21 +14,60 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
+      - name: Configure (release, x86)
+        run: xmake f -m release -a x86 -y
+
       - name: Build client
         run: xmake build client
 
       - name: Build server
         run: xmake build server
-        
+
       - name: Build proxy
         run: xmake build proxy
-        
+
       - name: Build launcher
         run: xmake build launcher
+
+      # Monta uma pasta pronta para copiar por cima da pasta do GTA SA.
+      # O proxy vira eax.dll; o eax.dll original do jogo precisa ser
+      # renomeado para eax_orig.dll na instalação (ver INSTALL-COOP.txt).
+      - name: Package
+        shell: pwsh
+        run: |
+          $out = "build/windows/x86/release"
+          Get-ChildItem -Recurse build | Where-Object { -not $_.PSIsContainer } | Select-Object FullName, Length
+          $pkg = "package/GTA-SA"
+          New-Item -ItemType Directory -Force -Path "$pkg/CoopAndreas", "package/server" | Out-Null
+          Copy-Item "$out/CoopAndreasSA.dll" "$pkg/"
+          Copy-Item "$out/LaunchCoopAndreas.exe" "$pkg/"
+          Get-ChildItem -Recurse . -Filter "LaunchCoopAndreas.exe.manifest" | Select-Object -First 1 | Copy-Item -Destination "$pkg/"
+          $proxy = Get-ChildItem "$out" -Filter "proxy*.dll" | Select-Object -First 1
+          if (-not $proxy) { throw "proxy dll not found in $out" }
+          Copy-Item $proxy.FullName "$pkg/eax.dll"
+          Copy-Item "scm/main.scm", "scm/script.img" "$pkg/CoopAndreas/"
+          $server = Get-ChildItem "$out" -Filter "server*.exe" | Select-Object -First 1
+          if (-not $server) { throw "server exe not found in $out" }
+          Copy-Item $server.FullName "package/server/"
+          $txt = @(
+            "CoopAndreas build $env:GITHUB_SHA",
+            "",
+            "GTA-SA\  -> copie tudo por cima da pasta do GTA SA 1.0 US.",
+            "           ANTES: renomeie o eax.dll original do jogo para eax_orig.dll.",
+            "server\  -> rode no PC do host (UDP 6767 por padrao, config em server-config.ini)."
+          )
+          $txt | Out-File -Encoding utf8 "package/INSTALL-COOP.txt"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: CoopAndreas-${{ github.sha }}
+          path: package/
+          if-no-files-found: error
