@@ -62,6 +62,7 @@
 | `a4f7af7` | `CCoopTeleport`: `/tp` e renascer perto do parceiro (fora de missão/interior) |
 | `4a625a0` | `CCoopCommands`: comandos no chat (F6). Comandos "dos dois" são executados localmente e reenviados como mensagem de chat; o outro client reconhece e executa |
 | `d265309` | `UI/CCoopMenu`: menu clicável no **F7** (ImGui) que chama `CCoopCommands::Run` |
+| `9acbc5e`/`e8d6fee` | mouse liberado com menu aberto (`0x6194A0` psSetMousePos → `ret`, NOP em `0x541DD7` call `CPad::UpdateMouse`), restaurado ao fechar; menu com veículos por categoria (helicópteros, aviões/jatos, barcos, motos, off-road) |
 
 ## 5. Problemas já resolvidos — não repetir
 
