@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -72,3 +74,18 @@ jobs:
           name: CoopAndreas-${{ github.sha }}
           path: package/
           if-no-files-found: error
+
+      # Também publica o pacote na branch `builds` (um único commit, sobrescrito
+      # a cada build) para poder baixar via git sem precisar de login no GitHub.
+      - name: Publish package to builds branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/coop-lan'
+        shell: bash
+        run: |
+          cd package
+          git init -q
+          git checkout -q -b builds
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "build ${GITHUB_SHA}"
+          git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" builds:builds
