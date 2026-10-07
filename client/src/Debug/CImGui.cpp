@@ -40,8 +40,43 @@ void InitStyles()
     style.ChildRounding = 3.0f;
 }
 
+// While a menu is open the game must not grab the mouse, otherwise the camera
+// keeps turning and the cursor is re-centered every frame (can't click).
+//   0x6194A0: jmp psSetMousePos (calls SetCursorPos)        -> ret
+//   0x541DD7: call CPad::UpdateMouse (0x53F3C0) in the game loop -> nop
+// Addresses verified in the 1.0 US exe disassembly; 0x53F3C0 matches plugin-sdk.
+static void SetGameMouseGrab(bool bGrab)
+{
+    static bool bSaved = false;
+    static uint8_t origSetMousePos[1];
+    static uint8_t origUpdateMouseCall[5];
+
+    if (!bSaved)
+    {
+        patch::GetRaw(0x6194A0, origSetMousePos, 1);
+        patch::GetRaw(0x541DD7, origUpdateMouseCall, 5);
+        bSaved = true;
+    }
+
+    if (bGrab)
+    {
+        patch::SetRaw(0x6194A0, origSetMousePos, 1);
+        patch::SetRaw(0x541DD7, origUpdateMouseCall, 5);
+    }
+    else
+    {
+        patch::SetUChar(0x6194A0, 0xC3);
+        patch::Nop(0x541DD7, 5);
+        CPad::NewMouseControllerState = CMouseControllerState();
+        CPad::OldMouseControllerState = CMouseControllerState();
+    }
+}
+
 void CImGui::SetActive(bool bActive)
 {
+    if (ms_bActive != bActive)
+        SetGameMouseGrab(!bActive);
+
     ms_bActive = bActive;
 
     if (ms_bActive)
