@@ -270,18 +270,21 @@ void FixCrashes()
     // looks like a solution to fix duplication of peds when creating at attractors (please)
     patch::SetFloat(0x86D26C, 10.0f);
 
-    // patch isAlreadyRunning, so we can run more than one game instance
-    if (GetModuleHandleA("SilentPatchSA.asi"))
-    {
-        patch::SetRaw(0x74872D, (void*)"\xE8\xAE\xE1\xFF\xFF\x85\xC0\x75\x0F", 9);
-        patch::PutRetn0(0x7468E0);
-    }
-    else
+    // patch isAlreadyRunning, so we can run more than one game instance.
+    //
+    // Making IsAlreadyRunning (0x7468E0) return 0 is enough: WinMain does
+    // `call 0x7468E0; test eax, eax; jne exit` at 0x74872D, so a 0 result
+    // continues normally. We must NOT touch the call site itself: this runs
+    // from the eax.dll proxy, before ASI/ModLoader plugins are loaded, so the
+    // old GetModuleHandle("SilentPatchSA.asi") check was always false and the
+    // call was NOPed; SilentPatch/GInput later rewrite only the rel32 at
+    // 0x74872E, leaving garbage bytes that crash with "Privileged instruction"
+    // at 0x0074872E on startup.
+    if (!GetModuleHandleA("SilentPatchSA.asi"))
     {
         patch::SetUChar(0x406946, 0xDC);
-        patch::PutRetn0(0x7468E0);
-        patch::Nop(0x74872D, 9);
     }
+    patch::PutRetn0(0x7468E0);
 
     // allow vertical camera movement during a camera fade
     patch::SetUChar(0x524084, 0xFF);
