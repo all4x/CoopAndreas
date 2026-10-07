@@ -63,8 +63,10 @@ private:
 
     static void log(const char* text, const char* level, const char* color)
     {
-        std::cout << color << "[" << level << "]" << "\033[0m" << ": " << text << std::endl;
+        // file first: if the console blocks (e.g. Windows QuickEdit "Select" mode),
+        // the event is still on disk
         WriteFile(text, level);
+        std::cout << color << "[" << level << "]" << "\033[0m" << ": " << text << std::endl;
     }
 
 public:

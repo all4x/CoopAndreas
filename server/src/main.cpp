@@ -33,6 +33,18 @@ int main(int argc, char* argv[])
 {
 #if defined(_WIN32)
     SetConsoleTitleW(L"CoopAndreas Server");
+
+    // Disable QuickEdit: clicking inside the console puts it in "Select" mode,
+    // which blocks every printf/cout and freezes the whole server loop (players
+    // connect at the ENet level but never get the handshake).
+    HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD consoleMode = 0;
+    if (hStdIn != INVALID_HANDLE_VALUE && GetConsoleMode(hStdIn, &consoleMode))
+    {
+        consoleMode &= ~ENABLE_QUICK_EDIT_MODE;
+        consoleMode |= ENABLE_EXTENDED_FLAGS;
+        SetConsoleMode(hStdIn, consoleMode);
+    }
 #endif
 
     std::filesystem::path exeDir = GetExecutableDir();
