@@ -1,6 +1,6 @@
 #include "config.h"
 #include "stdafx.h"
-#include "CCoopTeleport.h"
+#include "CCoopCommands.h"
 #include "CUnicode.h"
 
 std::vector<CChatMessage> CChat::m_aMessages{};
@@ -569,8 +569,16 @@ void CChat::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return;
             }
 
-            if (CCoopTeleport::HandleChatCommand(m_sInputText))
+            auto coopResult = CCoopCommands::HandleLocal(m_sInputText);
+            if (coopResult != CCoopCommands::eResult::NOT_A_COMMAND)
             {
+                if (coopResult == CCoopCommands::eResult::BROADCAST)
+                {
+                    // the other clients recognize the command and run it too
+                    Packets::System::ChatMessage cmdPacket{};
+                    wcscpy_s(cmdPacket.message, m_sInputText.c_str());
+                    GetPacketFactory().Send(cmdPacket);
+                }
                 AddPreviousMessage(m_sInputText);
                 m_sInputText.clear();
                 m_nCaretPos = 0;

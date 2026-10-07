@@ -113,16 +113,6 @@ bool CCoopTeleport::TeleportToPartner(bool bFromRespawn)
     return true;
 }
 
-bool CCoopTeleport::HandleChatCommand(const std::wstring& text)
-{
-    if (_wcsicmp(text.c_str(), L"/tp") == 0)
-    {
-        TeleportToPartner(false);
-        return true;
-    }
-    return false;
-}
-
 void CCoopTeleport::OnLocalRespawn()
 {
     ms_nPendingRespawnTeleportAt = GetTickCount() + RESPAWN_TELEPORT_DELAY_MS;

@@ -1,15 +1,15 @@
 #pragma once
 
 // Quality-of-life teleports for free-roam coop:
-//   - chat command "/tp": teleport next to the other player
+//   - chat command "/tp" (see CCoopCommands): teleport next to the other player
 //   - after death/arrest respawn: teleport back next to the other player
 // Both are skipped during missions (the host's mission script owns player
 // positions there) and when either player is inside an interior.
 class CCoopTeleport
 {
 public:
-    // returns true if `text` was a coop command and must not be sent as chat
-    static bool HandleChatCommand(const std::wstring& text);
+    // "/tp" (and "/trazer" received from the other player)
+    static void TeleportToPartnerCommand() { TeleportToPartner(false); }
 
     // called when the local player has just been restarted (hospital/police)
     static void OnLocalRespawn();

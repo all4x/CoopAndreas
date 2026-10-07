@@ -3,6 +3,7 @@
 #include "network/packet_types.h"
 #include "network/packets/system.h"
 #include "stdafx.h"
+#include "CCoopCommands.h"
 #include <CWeatherSync.h>
 #include <CMoonSync.h>
 #include <game_sa/CTagManager.h>
@@ -67,7 +68,7 @@ PACKET_HANDLER(ePacketType::PLAYER_HANDSHAKE, Packets::System::PlayerHandshake* 
     CNetwork::m_bAuthenticated = true;
     CPatch::RevertTemporaryPatches();
     logger::info("Authenticated, playerid %d", pPlayerHandshake->yourid);
-    CChat::AddMessage("{cecedb}[Coop] Digite /tp no chat para ir ate o outro jogador. Ao morrer voce volta perto dele (fora de missao).");
+    CChat::AddMessage("{cecedb}[Coop] Abra o chat com F6 e digite /ajuda para ver os comandos coop.");
 }
 
 PACKET_HANDLER(ePacketType::RTT_BROADCAST, Packets::System::RTTBroadcast* pRTTBroadcast)
@@ -125,6 +126,9 @@ PACKET_HANDLER(ePacketType::PLAYER_CHAT_MESSAGE, Packets::System::ChatMessage* p
 
     if (player)
     {
+        if (CCoopCommands::HandleRemote(player->GetName().c_str(), pChatMessage->message))
+            return;
+
         CChat::SendPlayerMessage(player->GetName().c_str(), player->m_iPlayerId, pChatMessage->message);
     }
 }
