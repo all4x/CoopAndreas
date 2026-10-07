@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CCoopTeleport.h"
 #include "PlayerHooks.h"
 #include "CKeySync.h"
 #include "CAimSync.h"
@@ -187,6 +188,8 @@ void CReferences__RemoveReferencesToPlayer_Hook()
     {
         Packets::Players::RespawnPlayer respawnPlayer{};
         GetPacketFactory().Send(respawnPlayer);
+
+        CCoopTeleport::OnLocalRespawn();
     }
 }
 

@@ -67,6 +67,7 @@ PACKET_HANDLER(ePacketType::PLAYER_HANDSHAKE, Packets::System::PlayerHandshake* 
     CNetwork::m_bAuthenticated = true;
     CPatch::RevertTemporaryPatches();
     logger::info("Authenticated, playerid %d", pPlayerHandshake->yourid);
+    CChat::AddMessage("{cecedb}[Coop] Digite /tp no chat para ir ate o outro jogador. Ao morrer voce volta perto dele (fora de missao).");
 }
 
 PACKET_HANDLER(ePacketType::RTT_BROADCAST, Packets::System::RTTBroadcast* pRTTBroadcast)

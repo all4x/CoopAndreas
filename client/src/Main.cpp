@@ -3,6 +3,7 @@
 #include "CPacketBuffer.h"
 #include "CServerTime.h"
 #include "stdafx.h"
+#include "CCoopTeleport.h"
 #include "CCutsceneMgr.h"
 #include "UI/CDXFont.h"
 
@@ -128,6 +129,7 @@ public:
                 unsigned int tickCount = GetTickCount();
 
                 CPassengerEnter::Process();
+                CCoopTeleport::Process();
 
                 CPlayerPed* localPlayer = FindPlayerPed(0);
 

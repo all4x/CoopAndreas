@@ -1,5 +1,6 @@
 #include "config.h"
 #include "stdafx.h"
+#include "CCoopTeleport.h"
 #include "CUnicode.h"
 
 std::vector<CChatMessage> CChat::m_aMessages{};
@@ -563,6 +564,14 @@ void CChat::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             if (IsInputTextEmpty(m_sInputText))
             {
+                m_sInputText.clear();
+                m_nCaretPos = 0;
+                return;
+            }
+
+            if (CCoopTeleport::HandleChatCommand(m_sInputText))
+            {
+                AddPreviousMessage(m_sInputText);
                 m_sInputText.clear();
                 m_nCaretPos = 0;
                 return;
