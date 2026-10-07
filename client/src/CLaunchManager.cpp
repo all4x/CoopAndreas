@@ -81,6 +81,10 @@ void CLaunchManager::CollectCommandLineArgs()
         }
     }
 
+#ifdef COOP_REQUIRE_SERIAL
+    // Original beta gate. Disabled by default in this fork: the key server
+    // (Discord bot) is no longer issuing keys, and this build targets private
+    // 2-player LAN/VPN sessions. Build with COOP_REQUIRE_SERIAL to restore it.
     char* encrypted = Encrypt(id);
 
     if (!serial[0] || !id[0] || strcmp(encrypted, serial) != 0)
@@ -92,4 +96,8 @@ void CLaunchManager::CollectCommandLineArgs()
     }
 
     delete[] encrypted;
+#else
+    (void)serial;
+    (void)id;
+#endif
 }

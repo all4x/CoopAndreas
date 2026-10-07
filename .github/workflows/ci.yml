@@ -53,13 +53,14 @@ jobs:
           if (-not $proxy) { throw "proxy dll not found in $out" }
           Copy-Item $proxy.FullName "$pkg/eax.dll"
           Copy-Item "scm/main.scm", "scm/script.img" "$pkg/CoopAndreas/"
+          "@echo off`r`ncd /d `"%~dp0`"`r`nstart `"`" gta_sa.exe --coop`r`n" | Out-File -Encoding ascii -NoNewline "$pkg/Jogar-Coop.bat"
           $server = Get-ChildItem "$out" -Filter "server*.exe" | Select-Object -First 1
           if (-not $server) { throw "server exe not found in $out" }
           Copy-Item $server.FullName "package/server/"
           $txt = @(
             "CoopAndreas build $env:GITHUB_SHA",
             "",
-            "GTA-SA\  -> copie tudo por cima da pasta do GTA SA 1.0 US.",
+            "GTA-SA\  -> copie tudo por cima da pasta do GTA SA 1.0 US. Abra o jogo pelo Jogar-Coop.bat.",
             "           ANTES: renomeie o eax.dll original do jogo para eax_orig.dll.",
             "server\  -> rode no PC do host (UDP 6767 por padrao, config em server-config.ini)."
           )
