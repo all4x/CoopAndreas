@@ -112,6 +112,7 @@ PACKET_HANDLER(ePacketType::SET_PLAYER_TASK, Packets::Players::SetPlayerTask* pS
 
 PACKET_HANDLER(ePacketType::ENEX_TRANSITION, Packets::Players::EnExTransition* pEnExTransition)
 {
+    logger::info("[interior] player %d enex transition: area %d -> %d%s", pEnExTransition->playerid.value, (int)pEnExTransition->playerAreaId, (int)pEnExTransition->enexAreaId, pEnExTransition->bFinished ? " (finished)" : "");
     CEntryExitTransitionSync::Receive(*pEnExTransition);
 }
 
@@ -132,6 +133,7 @@ PACKET_HANDLER(ePacketType::PLAYER_PLACE_WAYPOINT, Packets::Players::PlayerPlace
 
 PACKET_HANDLER(ePacketType::RESPAWN_PLAYER, Packets::Players::RespawnPlayer* pRespawnPlayer)
 {
+    logger::info("[player] player %d respawned (after death/arrest)", pRespawnPlayer->playerid.value);
     CNetworkPlayer* pNetworkPlayer = CNetworkPlayerManager::GetPlayer(pRespawnPlayer->playerid);
     if (pNetworkPlayer == nullptr)
     {

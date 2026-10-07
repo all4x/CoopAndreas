@@ -128,11 +128,36 @@ void CChat::AddMessage(const std::vector<CTextSegment>& segs)
     m_aMessages.push_back(CChatMessage{segs, GetTickCount(), true});
 }
 
+// Mirrors chat/system messages into coopandreas.log (color tags like {ff0000} removed).
+static void LogChatLine(const char* text)
+{
+    char clean[Config::MAX_CHAT_MESSAGE_LENGTH * 2 + 1];
+    size_t j = 0;
+    for (size_t i = 0; text[i] != '\0' && j < sizeof(clean) - 1; i++)
+    {
+        if (text[i] == '{')
+        {
+            size_t k = i + 1;
+            while (text[k] != '\0' && text[k] != '}' && k - i <= 8)
+                k++;
+            if (text[k] == '}' && k - i == 7)
+            {
+                i = k;
+                continue;
+            }
+        }
+        clean[j++] = text[i];
+    }
+    clean[j] = '\0';
+    logger::info("[chat] %s", clean);
+}
+
 void CChat::AddMessage(const std::string& str)
 {
 #ifdef _DEV
     std::cout << str << std::endl;
 #endif
+    LogChatLine(str.c_str());
     AddMessageRich(CUnicode::ConvertUtf8ToUtf16(str), false);
 }
 
@@ -146,6 +171,7 @@ void CChat::AddMessage(const char* format, ...)
 #ifdef _DEV
     std::cout << buffer << std::endl;
 #endif
+    LogChatLine(buffer);
     AddMessageRich(CUnicode::ConvertUtf8ToUtf16(buffer), false);
 }
 

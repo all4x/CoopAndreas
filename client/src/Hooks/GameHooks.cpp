@@ -122,6 +122,7 @@ void CCutsceneMgr__StartCutscene_Hook()
         Packets::Scripts::StartCutscene packet{};
         packet.currArea = static_cast<eVisibleArea>(CGame::currArea);
         strncpy_s(packet.name, CCutsceneMgr::ms_cutsceneName, 8);
+        logger::info("[mission] host: start cutscene '%.8s' (area %d)", CCutsceneMgr::ms_cutsceneName, (int)CGame::currArea);
         GetPacketFactory().Send(packet);
     }
 }

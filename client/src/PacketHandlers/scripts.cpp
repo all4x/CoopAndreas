@@ -12,6 +12,8 @@ PACKET_HANDLER(ePacketType::ON_MISSION_FLAG_SYNC, Packets::Scripts::OnMissionFla
 	if (CLocalPlayer::m_bIsHost)
 		return;
 
+	logger::info("[mission] received on-mission flag -> %d", pOnMissionFlagSync->bOnMission ? 1 : 0);
+
 	if (CTheScripts::OnAMissionFlag)
 	{
 		CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag] = pOnMissionFlagSync->bOnMission;
@@ -120,6 +122,7 @@ PACKET_HANDLER(ePacketType::PLAY_MISSION_AUDIO, Packets::Scripts::PlayMissionAud
 
 PACKET_HANDLER(ePacketType::TELEPORT_PLAYER_SCRIPTED, Packets::Scripts::TeleportPlayerScripted* pTeleportPlayerScripted)
 {
+	logger::info("[player] scripted teleport to %.1f %.1f %.1f", pTeleportPlayerScripted->pos.x, pTeleportPlayerScripted->pos.y, pTeleportPlayerScripted->pos.z);
 	auto pPlayerPed = FindPlayerPed(0);
 	pPlayerPed->Teleport(pTeleportPlayerScripted->pos, false);
 	pPlayerPed->m_fCurrentRotation = pTeleportPlayerScripted->heading.m_angle;

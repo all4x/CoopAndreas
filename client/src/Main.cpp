@@ -118,6 +118,8 @@ public:
                 {
                     lastOnMissionFlag = CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag];
                         
+                    logger::info("[mission] host: on-mission flag -> %d", lastOnMissionFlag ? 1 : 0);
+
                     Packets::Scripts::OnMissionFlagSync packet{};
                     packet.bOnMission = CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag];
                     GetPacketFactory().Send(packet);

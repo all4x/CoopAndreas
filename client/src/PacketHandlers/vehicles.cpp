@@ -152,6 +152,7 @@ PACKET_HANDLER(ePacketType::VEHICLE_DRIVER_UPDATE, Packets::Vehicles::VehicleDri
 
 PACKET_HANDLER(ePacketType::VEHICLE_ENTER, Packets::Vehicles::VehicleEnter* pVehicleEnter)
 {
+    logger::info("[vehicle] player %d enters vehicle %d seat %d%s", pVehicleEnter->playerid.value, pVehicleEnter->vehicleid, (int)pVehicleEnter->seatid, pVehicleEnter->bPassenger ? " (passenger)" : " (driver)");
     CNetworkPlayer* pNetworkPlayer = CNetworkPlayerManager::GetPlayer(pVehicleEnter->playerid);
     if (pNetworkPlayer == nullptr)
     {
@@ -205,6 +206,7 @@ PACKET_HANDLER(ePacketType::VEHICLE_ENTER, Packets::Vehicles::VehicleEnter* pVeh
 
 PACKET_HANDLER(ePacketType::VEHICLE_EXIT, Packets::Vehicles::VehicleExit* pVehicleExit)
 {
+    logger::info("[vehicle] player %d exits vehicle%s", pVehicleExit->playerid.value, pVehicleExit->bForce ? " (forced)" : "");
     CNetworkPlayer* pNetworkPlayer = CNetworkPlayerManager::GetPlayer(pVehicleExit->playerid);
 
     if (pNetworkPlayer == nullptr)

@@ -28,6 +28,7 @@ PACKET_HANDLER(ePacketType::CLEAR_ENTITY_BLIPS, Packets::Blips::ClearEntityBlips
 
 PACKET_HANDLER(ePacketType::UPDATE_CHECKPOINT, Packets::Blips::UpdateCheckpoint* pUpdateCheckpoint)
 {
+	logger::info("[mission] checkpoint update received");
 	if (CLocalPlayer::m_bIsHost)
 		return;
 
@@ -36,6 +37,7 @@ PACKET_HANDLER(ePacketType::UPDATE_CHECKPOINT, Packets::Blips::UpdateCheckpoint*
 
 PACKET_HANDLER(ePacketType::REMOVE_CHECKPOINT, Packets::Blips::RemoveCheckpoint* pRemoveCheckpoint)
 {
+	logger::info("[mission] checkpoint removed");
 	if (CLocalPlayer::m_bIsHost)
 		return;
 
