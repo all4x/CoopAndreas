@@ -1,0 +1,5 @@
+CoopAndreas build 32dcfac8647e3a104c6bd0707c8b640120fcc83b
+
+GTA-SA\  -> copie tudo por cima da pasta do GTA SA 1.0 US. Abra o jogo pelo Jogar-Coop.bat.
+           ANTES: renomeie o eax.dll original do jogo para eax_orig.dll.
+server\  -> rode no PC do host (UDP 6767 por padrao, config em server-config.ini).
