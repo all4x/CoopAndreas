@@ -99,6 +99,10 @@ bool CCoopMenu::Draw()
     Button("Habilidades no maximo", L"/habilidades", w);
 
     ImGui::Separator();
+    ImGui::TextDisabled("Mapa (so o host)");
+    Button("Liberar todos os interiores", L"/liberar", w);
+
+    ImGui::Separator();
     ImGui::TextDisabled("So para mim");
     Button("Jetpack", L"/jetpack", 127.0f);
     ImGui::SameLine();

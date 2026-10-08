@@ -3,6 +3,8 @@
 #include "CCoopTeleport.h"
 #include <CCheat.h>
 #include <CModelInfo.h>
+#include <CEntryExitManager.h>
+#include "CEntryExitMarkerSync.h"
 #include <cwctype>
 
 namespace
@@ -21,6 +23,7 @@ enum class eCmd
     JETPACK,
     PARACHUTE,
     CAR,
+    UNLOCK_INTERIORS,
 };
 
 struct SParsed
@@ -65,6 +68,7 @@ SParsed Parse(const std::wstring& text)
     else if (name == "jetpack") p.cmd = eCmd::JETPACK;
     else if (name == "paraquedas") p.cmd = eCmd::PARACHUTE;
     else if (name == "carro") p.cmd = eCmd::CAR;
+    else if (name == "liberar") p.cmd = eCmd::UNLOCK_INTERIORS;
     return p;
 }
 
@@ -113,6 +117,7 @@ void ShowHelp()
     CChat::AddMessage("{cecedb} /armas [1|2|3] - pacote de armas (os dois)  |  /sempolicia - liga/desliga (os dois)");
     CChat::AddMessage("{cecedb} /habilidades - armas e direcao no maximo (os dois)");
     CChat::AddMessage("{cecedb} /carro <nome> (ex: /carro infernus)  |  /jetpack  |  /paraquedas");
+    CChat::AddMessage("{cecedb} /liberar - (host) libera todas as entradas de interiores para os dois");
 }
 
 void SpawnCar(const std::string& name)
@@ -143,6 +148,41 @@ void SpawnCar(const std::string& name)
     {
         CChat::AddMessage("{cecedb}[Coop] Nao foi possivel criar '%s' agora.", name.c_str());
     }
+}
+
+// Host only: enable every entry/exit marker (houses, shops, clubs, ...). The
+// host already syncs EnEx flags to the other players (CEntryExitMarkerSync),
+// so the other PCs get the change over the network without any update.
+// Burglary-only entrances are left alone (they only make sense at night
+// during burglary).
+void UnlockAllInteriors()
+{
+    if (!CLocalPlayer::m_bIsHost)
+    {
+        CChat::AddMessage("{cecedb}[Coop] So o host pode liberar os interiores.");
+        return;
+    }
+
+    int nEnabled = 0, nTotal = 0;
+    for (auto pEntryExit : CEntryExitManager::mp_poolEntryExits)
+    {
+        if (!pEntryExit)
+            continue;
+        nTotal++;
+        if (pEntryExit->m_nFlags.bBurglaryAccess)
+            continue;
+        if (!pEntryExit->m_nFlags.bEnableAccess)
+        {
+            pEntryExit->m_nFlags.bEnableAccess = true;
+            nEnabled++;
+        }
+    }
+
+    CEntryExitMarkerSync::ms_nLastUpdate = 0;
+    CEntryExitMarkerSync::ms_bUpdateAfterProcessingThisFrame = true;
+
+    logger::info("[coop-cmd] unlocked %d of %d entry/exits", nEnabled, nTotal);
+    CChat::AddMessage("{cecedb}[Coop] %d entradas liberadas (de %d). Sincronizando com o outro jogador...", nEnabled, nTotal);
 }
 
 bool IsShared(eCmd cmd)
@@ -176,6 +216,9 @@ CCoopCommands::eResult CCoopCommands::HandleLocal(const std::wstring& text)
             return eResult::LOCAL_ONLY;
         case eCmd::PARACHUTE:
             if (LocalPlayerReady()) CCheat::ParachuteCheat();
+            return eResult::LOCAL_ONLY;
+        case eCmd::UNLOCK_INTERIORS:
+            UnlockAllInteriors();
             return eResult::LOCAL_ONLY;
         case eCmd::CAR:
             SpawnCar(p.arg);
