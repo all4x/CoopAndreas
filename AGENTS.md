@@ -42,6 +42,7 @@
 ```
 
 - Exe: **GTA SA 1.0 US Hoodlum + Largeaddress**, MD5 `2b5066bd4097ac2944ce6a9cf8fe5677`, entry point `0x824570`.
+- Atualização do client com o jogo aberto: gravar como `CoopAndreasSA.new.dll`; o `JOGAR - Host` troca antes de abrir. Mesmo esquema para `Servidor\CoopAndreasServer.new.exe`.
 - Jogo sempre aberto com `gta_sa.exe --coop`. O proxy `eax.dll` só carrega o CoopAndreas com essa flag; o `eax.dll` original vira `eax_orig.dll`.
 - IP do PC 1 no Radmin: `26.153.235.155`, porta `6767`. O PC 1 conecta em `127.0.0.1`.
 - Config do client: `Documentos\GTA San Andreas User Files\coopandreas.ini` (nickname, ip, port).
@@ -63,6 +64,7 @@
 | `4a625a0` | `CCoopCommands`: comandos no chat (F6). Comandos "dos dois" são executados localmente e reenviados como mensagem de chat; o outro client reconhece e executa |
 | `d265309` | `UI/CCoopMenu`: menu clicável no **F7** (ImGui) que chama `CCoopCommands::Run` |
 | `9acbc5e`/`e8d6fee` | mouse liberado com menu aberto (`0x6194A0` psSetMousePos → `ret`, NOP em `0x541DD7` call `CPad::UpdateMouse`), restaurado ao fechar; menu com veículos por categoria (helicópteros, aviões/jatos, barcos, motos, off-road) |
+| `90289bc` | `/liberar` (só host, também no F7): liga `bEnableAccess` em todas as entradas EnEx (menos burglary) e força `CEntryExitMarkerSync` → o PC 2 recebe pela rede **sem atualizar DLL** |
 
 ## 5. Problemas já resolvidos — não repetir
 
